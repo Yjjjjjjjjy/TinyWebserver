@@ -1,6 +1,6 @@
 # TinyWebserver
 
-本项目是为了学习C++系统编程与网络编程而进行的一个项目。
+本项目是为了学习Linux系统编程与网络编程而进行的一个项目。
 
 参考了游双老师的《Linux高性能服务器编程》和 https://github.com/qinguoyi/TinyWebServer 大佬的源码，实现的一个轻量级webserver服务器项目。
 
