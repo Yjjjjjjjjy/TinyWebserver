@@ -4,11 +4,13 @@ WebServer::WebServer()
 {
     users = new http_conn[MAX_FD];
 
-    char server_path[200];
+    char server_path[200];   // 200 写在配置文件
     getcwd(server_path, 200);
 
     char root[6] = "/root";
     m_root = (char *)malloc(strlen(server_path) + strlen(root) + 1);
+
+    assert(m_root != nullptr);
 
     strcpy(m_root, server_path);
     strcat(m_root, root);
@@ -25,6 +27,7 @@ WebServer::~WebServer()
     delete[] users;
     delete[] users_timer;
     delete[] m_pool;
+    delete m_root;
 }
 
 void WebServer::init(int port, string user, string passWord, string databaseName, int log_write, int opt_linger, int trigmode, int sql_num, int thread_num, int close_log, int actor_model)
@@ -94,11 +97,11 @@ void WebServer::thread_pool()
     m_pool = new threadpool<http_conn>(m_actormodel, m_connPool, m_thread_num);
 }
 
+//TODO: assert 改成 try catch
 void WebServer::eventListen()
 {
     m_listenfd = socket(PF_INET, SOCK_STREAM, 0);
-    assert(m_listenfd >= 0);
-
+    assert(m_listenfd >= 0); 
     if (0 == m_OPT_LINGER)
     {
         struct linger tmp = {0, 1};
@@ -127,7 +130,7 @@ void WebServer::eventListen()
 
     utils.init(TIMESLOT);
 
-    epoll_event events[MAX_EVENT_NUMBER];
+
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
@@ -160,7 +163,7 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address)
     timer->user_data = &users_timer[connfd];
     timer->cb_func = cb_func;
     time_t cur = time(NULL);
-    timer->expire = cur + 3 * TIMESLOT;
+    timer->expire = cur + 3 * TIMESLOT; // 3 写在配置文件中
     users_timer[connfd].timer = timer;
     utils.m_timer_lst.add_timer(timer);
 }
@@ -168,7 +171,7 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address)
 void WebServer::adjust_timer(util_timer *timer)
 {
     time_t cur = time(NULL);
-    timer->expire = cur + 3 * TIMESLOT;
+    timer->expire = cur + 3 * TIMESLOT; // 3 写在配置文件中
     utils.m_timer_lst.adjust_timer(timer);
     LOG_INFO("%s", "adjust timer once");
 }
@@ -188,6 +191,7 @@ bool WebServer::dealclientdata()
     struct sockaddr_in client_address;
     socklen_t client_addrlength = sizeof(client_address);
 
+    // LT 和 ET 可以抽象出一个函数，代码复用 
     if (0 == m_LISTENTrigmode)
     {
         int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
